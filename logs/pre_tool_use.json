@@ -971,5 +971,82 @@
         }
       ]
     }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "/Users/ugo/_nexus/labs/VoiceInk/BUILD_AND_INSTALL_GUIDE.md",
+      "content": "# VoiceInk Build and Install Guide\n\nThis guide documents the exact steps to build and install VoiceInk with the licensing bypass on any Mac.\n\n## Prerequisites\n\n1. **Xcode** installed (with command line tools)\n2. **Apple Developer Certificate** (free Apple ID works)\n3. **Git** installed\n\n## Step 1: Clone and Setup Repository\n\n```bash\n# Clone the repository (if not already done)\ngit clone https://github.com/ugolafosse/VoiceInk.git\ncd VoiceInk\n\n# Add upstream remote\ngit remote add upstream https://github.com/BeingPax/VoiceInk.git\n\n# Fetch latest from upstream\ngit fetch upstream\n\n# Reset main to match upstream exactly\ngit checkout main\ngit reset --hard upstream/main\n\n# Create or checkout bypass branch\ngit checkout -b bypass\n```\n\n## Step 2: Apply License Bypass\n\n### Edit `VoiceInk/Models/LicenseViewModel.swift`\n\nMake these two changes:\n\n1. **Replace the `loadLicenseState()` function** (around line 35):\n```swift\nprivate func loadLicenseState() {\n    // Bypass licensing - always appear as licensed\n    licenseState = .licensed\n    return  // Skip all other logic\n}\n```\n\n2. **Replace the `canUseApp` property** (around line 72):\n```swift\nvar canUseApp: Bool {\n    return true  // Always allow app usage - bypass trial limitation\n}\n```\n\n## Step 3: Fix Build Issues\n\nDisable the problematic NativeAppleTranscriptionService file (contains future macOS 26 APIs):\n\n```bash\nmv VoiceInk/Services/NativeAppleTranscriptionService.swift VoiceInk/Services/NativeAppleTranscriptionService.swift.disabled\n```\n\n## Step 4: Get Your Development Team ID\n\nFind your team ID from your certificate:\n\n```bash\n# List your signing identities\nsecurity find-identity -v -p codesigning\n\n# Extract team ID from certificate (replace email with yours)\nsecurity find-certificate -c \"your-email@example.com\" -p | openssl x509 -noout -text | grep \"Subject:\" | grep -oE 'OU=[^,]+' | cut -d= -f2\n```\n\nSave your TEAM_ID for the next steps (e.g., `FFMQU322ZW`).\n\n## Step 5: Archive the App\n\n```bash\n# Archive with your team ID and unique bundle identifier\n# Replace TEAM_ID with your actual team ID\n# Replace YOUR_USERNAME with your username for unique bundle ID\n\nxcodebuild -scheme VoiceInk \\\n    -configuration Release \\\n    archive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -allowProvisioningUpdates \\\n    DEVELOPMENT_TEAM=\"YOUR_TEAM_ID\" \\\n    PRODUCT_BUNDLE_IDENTIFIER=\"com.YOUR_USERNAME.VoiceInk\"\n```\n\nExample with actual values:\n```bash\nxcodebuild -scheme VoiceInk \\\n    -configuration Release \\\n    archive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -allowProvisioningUpdates \\\n    DEVELOPMENT_TEAM=\"FFMQU322ZW\" \\\n    PRODUCT_BUNDLE_IDENTIFIER=\"com.ugolafosse.VoiceInk\"\n```\n\n## Step 6: Create Export Options\n\nCreate `exportOptions.plist` file:\n\n```bash\ncat > exportOptions.plist << 'EOF'\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <key>method</key>\n    <string>development</string>\n    <key>teamID</key>\n    <string>YOUR_TEAM_ID</string>\n    <key>signingStyle</key>\n    <string>automatic</string>\n    <key>uploadBitcode</key>\n    <false/>\n    <key>uploadSymbols</key>\n    <false/>\n    <key>compileBitcode</key>\n    <false/>\n</dict>\n</plist>\nEOF\n```\n\nRemember to replace `YOUR_TEAM_ID` in the file with your actual team ID.\n\n## Step 7: Export the App\n\n```bash\nxcodebuild -exportArchive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -exportPath ~/Desktop \\\n    -exportOptionsPlist exportOptions.plist\n```\n\n## Step 8: Install to Applications\n\n```bash\n# Remove old version if exists\nrm -rf /Applications/VoiceInk.app 2>/dev/null\n\n# Copy new app to Applications\ncp -R ~/Desktop/VoiceInk.app /Applications/\n```\n\n## Step 9: Clean Up (Optional)\n\n```bash\n# Remove archive and exported app from Desktop\nrm -rf ~/Desktop/VoiceInk.xcarchive\nrm -rf ~/Desktop/VoiceInk.app\n```\n\n## Complete Script\n\nHere's a complete script you can save and run (after making the manual code edits):\n\n```bash\n#!/bin/bash\n\n# Set your configuration here\nTEAM_ID=\"YOUR_TEAM_ID\"  # e.g., \"FFMQU322ZW\"\nBUNDLE_ID=\"com.YOUR_USERNAME.VoiceInk\"  # e.g., \"com.ugolafosse.VoiceInk\"\n\necho \"Building VoiceInk with licensing bypass...\"\n\n# Disable problematic file\nmv VoiceInk/Services/NativeAppleTranscriptionService.swift VoiceInk/Services/NativeAppleTranscriptionService.swift.disabled 2>/dev/null\n\n# Archive\necho \"Archiving app...\"\nxcodebuild -scheme VoiceInk \\\n    -configuration Release \\\n    archive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -allowProvisioningUpdates \\\n    DEVELOPMENT_TEAM=\"$TEAM_ID\" \\\n    PRODUCT_BUNDLE_IDENTIFIER=\"$BUNDLE_ID\"\n\n# Create export options\necho \"Creating export options...\"\ncat > exportOptions.plist << EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <key>method</key>\n    <string>development</string>\n    <key>teamID</key>\n    <string>$TEAM_ID</string>\n    <key>signingStyle</key>\n    <string>automatic</string>\n    <key>uploadBitcode</key>\n    <false/>\n    <key>uploadSymbols</key>\n    <false/>\n    <key>compileBitcode</key>\n    <false/>\n</dict>\n</plist>\nEOF\n\n# Export\necho \"Exporting app...\"\nxcodebuild -exportArchive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -exportPath ~/Desktop \\\n    -exportOptionsPlist exportOptions.plist\n\n# Install\necho \"Installing to Applications...\"\nrm -rf /Applications/VoiceInk.app 2>/dev/null\ncp -R ~/Desktop/VoiceInk.app /Applications/\n\n# Clean up\necho \"Cleaning up...\"\nrm -rf ~/Desktop/VoiceInk.xcarchive\nrm -rf ~/Desktop/VoiceInk.app\nrm exportOptions.plist\n\necho \"\u2705 VoiceInk installed successfully to /Applications/\"\n```\n\n## Troubleshooting\n\n### Build Fails with Signing Error\n- Make sure you have a valid Apple Developer certificate\n- Run with `-allowProvisioningUpdates` flag\n- Change bundle identifier to something unique to you\n\n### \"Bundle identifier already taken\" Error\n- Change `PRODUCT_BUNDLE_IDENTIFIER` to something unique\n- Format: `com.yourname.VoiceInk`\n\n### Compilation Errors\n- Make sure `NativeAppleTranscriptionService.swift` is disabled\n- Check that you're on the correct branch with the license bypass edits\n\n### App Won't Open\n- Right-click the app and select \"Open\" the first time\n- Go to System Settings > Privacy & Security and allow the app\n\n## Notes\n\n- The app will request permissions (microphone, accessibility, screen recording) when first launched\n- The app will show as \"PRO\" version with no trial limitations\n- All features work normally with this bypass\n- This is for personal use only - consider supporting the developer if you use it regularly"
+    }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "/Users/ugo/_nexus/labs/VoiceInk/QUICK_INSTALL.md",
+      "content": "# VoiceInk Quick Install (For Already Modified Code)\n\nIf you already have the `bypass` branch with the licensing modifications, here's the quick install process.\n\n## Prerequisites\n- Xcode installed\n- Apple Developer certificate (free Apple ID works)\n\n## Step 1: Clone and Get the Bypass Branch\n\n```bash\n# Clone your fork\ngit clone https://github.com/ugolafosse/VoiceInk.git\ncd VoiceInk\n\n# Checkout the bypass branch (already has the license modifications)\ngit checkout bypass\n\n# Disable the problematic file\nmv VoiceInk/Services/NativeAppleTranscriptionService.swift VoiceInk/Services/NativeAppleTranscriptionService.swift.disabled\n```\n\n## Step 2: Get Your Team ID\n\n```bash\n# Find your signing identity\nsecurity find-identity -v -p codesigning\n\n# Get your team ID (replace with your email)\nsecurity find-certificate -c \"your-email@example.com\" -p | openssl x509 -noout -text | grep \"Subject:\" | grep -oE 'OU=[^,]+' | cut -d= -f2\n```\n\n## Step 3: Build and Install Script\n\nSave this as `build_and_install.sh`:\n\n```bash\n#!/bin/bash\n\n# CHANGE THESE VALUES\nTEAM_ID=\"YOUR_TEAM_ID\"  # Replace with your team ID (e.g., \"FFMQU322ZW\")\nBUNDLE_ID=\"com.YOUR_USERNAME.VoiceInk\"  # Replace with unique bundle ID\n\necho \"Building VoiceInk...\"\n\n# Archive\nxcodebuild -scheme VoiceInk \\\n    -configuration Release \\\n    archive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -allowProvisioningUpdates \\\n    DEVELOPMENT_TEAM=\"$TEAM_ID\" \\\n    PRODUCT_BUNDLE_IDENTIFIER=\"$BUNDLE_ID\"\n\n# Create export options\ncat > exportOptions.plist << EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <key>method</key>\n    <string>development</string>\n    <key>teamID</key>\n    <string>$TEAM_ID</string>\n    <key>signingStyle</key>\n    <string>automatic</string>\n    <key>uploadBitcode</key>\n    <false/>\n    <key>uploadSymbols</key>\n    <false/>\n    <key>compileBitcode</key>\n    <false/>\n</dict>\n</plist>\nEOF\n\n# Export\nxcodebuild -exportArchive \\\n    -archivePath ~/Desktop/VoiceInk.xcarchive \\\n    -exportPath ~/Desktop \\\n    -exportOptionsPlist exportOptions.plist\n\n# Install\ncp -R ~/Desktop/VoiceInk.app /Applications/\n\n# Clean up\nrm -rf ~/Desktop/VoiceInk.xcarchive\nrm -rf ~/Desktop/VoiceInk.app\nrm exportOptions.plist\n\necho \"\u2705 VoiceInk installed to /Applications/\"\n```\n\n## Step 4: Run It\n\n```bash\nchmod +x build_and_install.sh\n./build_and_install.sh\n```\n\nThat's it! The app will be in `/Applications/VoiceInk.app`\n\n## One-Liner After Setup\n\nOnce you've set up the script with your team ID, you can just run:\n\n```bash\ncd VoiceInk && ./build_and_install.sh\n```"
+    }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cp -R /Applications/VoiceInk.app ~/Desktop/VoiceInk-Universal.app",
+      "description": "Create a copy of the app for universal distribution"
+    }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "codesign --remove-signature ~/Desktop/VoiceInk-Universal.app",
+      "description": "Remove your signature from the copy"
+    }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd ~/Desktop && codesign --force --deep --sign - VoiceInk-Universal.app",
+      "description": "Ad-hoc sign the universal copy"
+    }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd ~/Desktop && xattr -cr VoiceInk-Universal.app && codesign --force --deep --sign - VoiceInk-Universal.app",
+      "description": "Clean extended attributes and ad-hoc sign"
+    }
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "hdiutil create -volname \"VoiceInk\" -srcfolder ~/Desktop/VoiceInk-Universal.app -ov -format UDZO ~/Desktop/VoiceInk-Universal.dmg",
+      "description": "Create DMG for easy distribution"
+    }
   }
 ]

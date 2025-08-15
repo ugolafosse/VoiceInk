@@ -5,5 +5,40 @@
     "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
     "hook_event_name": "Stop",
     "stop_hook_active": false
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "ed9c4a97-d502-4d4b-a30f-f3031022668f",
+    "transcript_path": "/Users/ugo/.claude/projects/-Users-ugo--nexus-labs-VoiceInk/ed9c4a97-d502-4d4b-a30f-f3031022668f.jsonl",
+    "cwd": "/Users/ugo/_nexus/labs/VoiceInk",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false
   }
 ]
